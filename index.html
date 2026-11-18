@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHUDDA HUB</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+<div class="card" id="login">
+ <div class="logo">DHUDDA HUB</div>
+ <h1>Stay close.<br><span>Talk freely.</span></h1>
+ <p>Connect with your people.</p>
+
+ <input id="username" placeholder="Your name">
+ <input id="email" type="email" placeholder="Email address">
+ <input id="password" type="password" placeholder="Password">
+
+ <button class="full" onclick="loginUser()">Enter DHUDDA HUB</button>
+</div>
+
+<div class="card hidden" id="home">
+ <div class="logo">DHUDDA HUB</div>
+ <h2>Welcome, <span id="displayName"></span>!</h2>
+ <p>Choose your calling option.</p>
+
+ <div class="grid">
+  <button onclick="startCall('Audio Call')">🎙 Audio Call</button>
+  <button onclick="startCall('Video Call')">📹 Video Call</button>
+  <button onclick="startCall('Group Call - 8 People')">👥 Group Call</button>
+ </div>
+
+ <div id="callBox" class="hidden">
+  <h2 id="callTitle"></h2>
+  <div class="call">Your call room</div>
+  <button class="secondary full" onclick="toggleMute()">🎙 Mute / Unmute</button>
+  <button class="secondary full" onclick="toggleCamera()">📷 Camera On / Off</button>
+  <button class="full" style="background:#e65e70" onclick="endCall()">☎ End Call</button>
+  <p id="status">Demo mode: real call not connected.</p>
+ </div>
+
+ <button class="secondary full" onclick="logout()">Log out</button>
+</div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>

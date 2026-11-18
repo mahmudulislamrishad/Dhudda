@@ -1,0 +1,89 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #0b1220;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 500px;
+  margin: 40px auto;
+}
+
+.card {
+  background: #172338;
+  padding: 25px;
+  border-radius: 18px;
+  border: 1px solid #34415a;
+}
+
+.logo {
+  color: #a99aff;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 38px;
+}
+
+h1 span {
+  color: #a99aff;
+}
+
+p {
+  color: #aab5c7;
+  line-height: 1.5;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0 16px;
+  border-radius: 9px;
+  border: 1px solid #40506a;
+  background: #0d1727;
+  color: white;
+}
+
+button {
+  padding: 14px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(90deg,#a99aff,#72d9e7);
+  color: #101827;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.full {
+  width: 100%;
+  margin: 8px 0;
+}
+
+.secondary {
+  background: #293852;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+.grid {
+  display: grid;
+  gap: 13px;
+}
+
+.call {
+  background: #202e46;
+  color: white;
+  padding: 18px;
+  border-radius: 12px;
+}
