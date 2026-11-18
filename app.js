@@ -55,16 +55,26 @@ async function startCall(type) {
 
     room = new Room();
 
-    room.on(RoomEvent.TrackSubscribed, track => {
-      if (track.kind === Track.Kind.Video) {
-        const video = track.attach();
-        video.autoplay = true;
-        video.playsInline = true;
-        video.style.width = "100%";
-        video.style.maxWidth = "300px";
-        $("videos").appendChild(video);
-      }
-    });
+    
+room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+  const element = track.attach();
+
+  if (track.kind === Track.Kind.Audio) {
+    element.autoplay = true;
+    element.controls = false;
+    element.style.display = "none";
+    document.body.appendChild(element);
+  }
+
+  if (track.kind === Track.Kind.Video) {
+    element.autoplay = true;
+    element.playsInline = true;
+    element.style.width = "100%";
+    element.style.maxWidth = "300px";
+    $("videos").appendChild(element);
+  }
+});
+
 
     room.on(RoomEvent.ParticipantDisconnected, () => {
       console.log("Participant left");
