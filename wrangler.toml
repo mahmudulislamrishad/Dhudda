@@ -2,5 +2,18 @@ name = "dhudda-hub-api"
 main = "worker/index.js"
 compatibility_date = "2026-11-18"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "dhudda-hub-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[[durable_objects.bindings]]
+name = "CHAT_ROOM"
+class_name = "ChatRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatRoom"]
+
 [observability]
 enabled = true

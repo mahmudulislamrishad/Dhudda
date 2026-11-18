@@ -405,3 +405,27 @@ footer {
 
 /* Mirror only the local front-camera preview; outgoing media stays unchanged. */
 .video-tile video.mirrored-preview { transform: scaleX(-1); }
+
+/* DHUDDA account, friends and encrypted chat */
+.hub-panel{width:min(1120px,94%);margin:28px auto;background:#121b2c;border:1px solid #293852;border-radius:22px;padding:20px;box-shadow:0 20px 70px #0005}
+.profile-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 18px;border-bottom:1px solid #34445f}
+.profile-bar small{display:block;color:#9ba8bd;margin-top:5px}
+.verified{font-size:10px;color:#8fcaff;border:1px solid #368bd0;border-radius:20px;padding:4px 7px}
+.hub-columns{display:grid;grid-template-columns:minmax(220px,.85fr) minmax(0,1.5fr);gap:15px;margin-top:18px}
+.hub-sidebar,.private-chat,.call-entry{background:#0b1424;border:1px solid #293852;border-radius:16px;padding:14px;min-width:0}
+.hub-sidebar h3,.call-entry h3{font-size:15px;margin:10px 0}
+.search-line{display:flex;gap:7px}.search-line input{min-width:0}
+.people-list{display:grid;gap:7px;margin:9px 0 18px}
+.person{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px;background:#18263b;border:1px solid #34445f;border-radius:10px;font-size:12px}
+.secondary-action,.primary-action{border:0;border-radius:10px;padding:10px 13px;font-weight:800;background:#5dcbd9;color:#071421;cursor:pointer}
+.secondary-action{font-size:12px;padding:8px 10px}
+.private-chat{display:flex;flex-direction:column;min-height:410px}
+.chat-header{padding:4px 4px 12px;border-bottom:1px solid #34445f}.chat-header small{display:block;color:#43d9a1;margin-top:5px}
+.chat-messages{flex:1;min-height:280px;max-height:430px;overflow:auto;padding:12px 4px}
+.chat-empty{color:#9ba8bd;font-size:13px;text-align:center;margin-top:75px}
+.chat-bubble{width:fit-content;max-width:90%;background:#253653;border:1px solid #3b4e6d;border-radius:13px;padding:9px 12px;margin:7px 0;overflow-wrap:anywhere;font-size:13px}
+.chat-compose{display:flex;gap:8px;padding-top:10px;border-top:1px solid #34445f}
+.chat-compose input{min-width:0;flex:1}.chat-compose .primary-action{width:auto}
+.call-entry{margin-top:18px}.call-entry label{display:block;font-size:12px;color:#c5cce0;margin:10px 0 6px}
+.call-entry input{margin-bottom:8px}.call-entry .call-options{margin-top:12px}
+@media(max-width:720px){.hub-columns{grid-template-columns:1fr}.private-chat{min-height:370px}.hub-panel{padding:12px;width:96%}.hub-sidebar{padding:12px}}
