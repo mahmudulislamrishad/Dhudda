@@ -5,8 +5,8 @@ import {
   Track,
 } from "https://cdn.jsdelivr.net/npm/livekit-client@2.23.0/+esm";
 
-// Set this to your deployed backend URL, e.g. https://your-api.onrender.com
-const API_BASE_URL = "https://YOUR-BACKEND-URL";
+// After Cloudflare deploy, paste your Worker URL here. Example: https://dhudda-hub-api.<your-subdomain>.workers.dev
+const API_BASE_URL = "https://YOUR-CLOUDFLARE-WORKER-URL";
 
 let room = null;
 let facingMode = "user";
@@ -149,7 +149,7 @@ async function startCall(mode) {
   $("videoGrid").appendChild(localTile);
 
   try {
-    if (API_BASE_URL.includes("YOUR-BACKEND-URL")) {
+    if (API_BASE_URL.includes("YOUR-CLOUDFLARE-WORKER-URL")) {
       throw new Error("Production backend URL সেট করা হয়নি। Backend deploy করে app.js-এ API_BASE_URL বসাও।");
     }
 

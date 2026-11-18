@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "dhudda-hub-v2";
+const CACHE_NAME = "dhudda-hub-v3";
 
 const FILES = [
   "./",
