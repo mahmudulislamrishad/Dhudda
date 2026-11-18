@@ -135,6 +135,19 @@ function logout() {
   $("login").classList.remove("hidden");
 }
 
+async function enableSpeaker() {
+  if (!room) return;
+
+  try {
+    await room.startAudio();
+    $("status").textContent = "Speaker enabled!";
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+window.enableSpeaker = enableSpeaker;
+
 window.loginUser = loginUser;
 window.startCall = startCall;
 window.toggleMute = toggleMute;
