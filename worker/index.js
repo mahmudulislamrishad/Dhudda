@@ -26,14 +26,25 @@ async function signJwt(payload, secret) {
 }
 
 function corsHeaders(origin, env) {
-  const allowed = (env.APP_ORIGIN || "").split(",").map(v => v.trim()).filter(Boolean);
-  if (!origin || !allowed.includes(origin)) return {};
+  const allowed = [
+    "https://mahmudulislamrishad.github.io",
+    ...(env.APP_ORIGIN || "")
+      .split(",")
+      .map(v => v.trim().replace(/\/+$/, ""))
+  ];
+
+  const cleanOrigin = origin.trim().replace(/\/+$/, "");
+
+  if (!allowed.includes(cleanOrigin)) return {};
+
   return {
-    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Origin": cleanOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
     "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
   };
+}
 }
 
 export default {
