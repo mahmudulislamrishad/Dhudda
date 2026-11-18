@@ -328,6 +328,12 @@ async function endCall() {
 
   facingMode = "user";
 }
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .catch(console.error);
+  });
+}
 
 window.startCall = startCall;
 window.toggleMute = toggleMute;
