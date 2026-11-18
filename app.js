@@ -6,7 +6,7 @@ import {
 } from "https://cdn.jsdelivr.net/npm/livekit-client@2.23.0/+esm";
 
 // After Cloudflare deploy, paste your Worker URL here. Example: https://dhudda-hub-api.<your-subdomain>.workers.dev
-const API_BASE_URL = "https://YOUR-CLOUDFLARE-WORKER-URL";
+const API_BASE_URL = "https://dhudda-hub-api.fake-jonathan-james.workers.dev";
 
 let room = null;
 let facingMode = "user";
