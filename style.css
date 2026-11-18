@@ -402,3 +402,6 @@ footer {
     justify-content: center;
   }
 }
+
+/* Mirror only the local front-camera preview; outgoing media stays unchanged. */
+.video-tile video.mirrored-preview { transform: scaleX(-1); }

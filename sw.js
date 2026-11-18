@@ -1,12 +1,13 @@
 
-const CACHE_NAME = "dhudda-hub-v1";
+const CACHE_NAME = "dhudda-hub-v2";
 
 const FILES = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./icon.png"
 ];
 
 self.addEventListener("install", event => {

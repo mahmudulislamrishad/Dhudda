@@ -3,14 +3,10 @@ import {
   Room,
   RoomEvent,
   Track,
-  TokenSource
 } from "https://cdn.jsdelivr.net/npm/livekit-client@2.23.0/+esm";
 
-// LiveKit development token server ID
-const TOKEN_SERVER_ID = "dhudda-2ayw9x";
-
-const tokenSource =
-  TokenSource.developmentTokenServer(TOKEN_SERVER_ID);
+// Set this to your deployed backend URL, e.g. https://your-api.onrender.com
+const API_BASE_URL = "https://YOUR-BACKEND-URL";
 
 let room = null;
 let facingMode = "user";
@@ -105,6 +101,7 @@ function attachLocalPreview() {
     const video = $("localVideo");
     publication.videoTrack.attach(video);
     video.muted = true;
+    video.classList.toggle("mirrored-preview", facingMode === "user");
     video.autoplay = true;
     video.playsInline = true;
   }
@@ -142,6 +139,7 @@ async function startCall(mode) {
   localVideo.autoplay = true;
   localVideo.muted = true;
   localVideo.playsInline = true;
+  localVideo.classList.add("mirrored-preview");
 
   const localName = document.createElement("span");
   localName.className = "tile-name";
@@ -151,9 +149,17 @@ async function startCall(mode) {
   $("videoGrid").appendChild(localTile);
 
   try {
-    const credentials = await tokenSource.fetch({
-      roomName: roomName
+    if (API_BASE_URL.includes("YOUR-BACKEND-URL")) {
+      throw new Error("Production backend URL সেট করা হয়নি। Backend deploy করে app.js-এ API_BASE_URL বসাও।");
+    }
+
+    const tokenResponse = await fetch(`${API_BASE_URL}/api/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomName, participantName: name })
     });
+    const credentials = await tokenResponse.json();
+    if (!tokenResponse.ok) throw new Error(credentials.error || "Token তৈরি হয়নি।");
 
     room = new Room({
       adaptiveStream: true,
@@ -183,8 +189,12 @@ async function startCall(mode) {
         updateParticipantCount();
       })
       .on(RoomEvent.ActiveSpeakersChanged, speakers => {
-        $("callStatus").textContent =
-          speakers.length ? "Someone is speaking" : "Call connected";
+        const names = speakers
+          .filter(person => person.identity !== room.localParticipant.identity)
+          .map(person => person.name || person.identity);
+        $("callStatus").textContent = names.length
+          ? `${names.slice(0, 2).join(", ")}${names.length > 2 ? ` +${names.length - 2}` : ""} কথা বলছেন`
+          : "Call connected";
       })
       .on(RoomEvent.Disconnected, () => {
         $("callStatus").textContent = "Call disconnected";
@@ -192,10 +202,9 @@ async function startCall(mode) {
 
     await room.connect(
       credentials.serverUrl,
-      credentials.participantToken
+      credentials.token
     );
 
-    await room.localParticipant.setName(name);
     await room.localParticipant.setMicrophoneEnabled(true);
 
     if (mode === "video" || mode === "group") {
@@ -312,6 +321,25 @@ async function enableSpeaker() {
   }
 }
 
+async function minimizeCall() {
+  const video = $("localVideo");
+  if (!video || !video.srcObject) {
+    alert("Video চালু থাকলে Minimize/Picture-in-Picture ব্যবহার করা যাবে।");
+    return;
+  }
+  try {
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+    } else if (document.pictureInPictureEnabled && video.requestPictureInPicture) {
+      await video.requestPictureInPicture();
+    } else {
+      alert("এই browser/device-এ Picture-in-Picture support নেই।");
+    }
+  } catch (error) {
+    alert("Minimize করা যায়নি: " + error.message);
+  }
+}
+
 async function endCall() {
   if (room) {
     await room.disconnect();
@@ -341,3 +369,4 @@ window.toggleCamera = toggleCamera;
 window.switchCamera = switchCamera;
 window.enableSpeaker = enableSpeaker;
 window.endCall = endCall;
+window.minimizeCall = minimizeCall;
