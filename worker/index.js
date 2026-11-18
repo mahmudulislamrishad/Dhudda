@@ -45,7 +45,6 @@ function corsHeaders(origin, env) {
     "Vary": "Origin"
   };
 }
-}
 
 export default {
   async fetch(request, env) {
