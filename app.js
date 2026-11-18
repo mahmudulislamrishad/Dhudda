@@ -1,39 +1,133 @@
 
-function loginUser() {
-  const name = document.getElementById("username").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+import {
+  Room,
+  RoomEvent,
+  Track,
+  TokenSource
+} from "https://cdn.jsdelivr.net/npm/livekit-client/+esm";
+
+const TOKEN_SERVER_ID = "dhudda-2ayw9x";
+
+let room;
+let currentMode = "audio";
+
+const tokenSource =
+  TokenSource.developmentTokenServer(TOKEN_SERVER_ID);
+
+const $ = id => document.getElementById(id);
+
+async function loginUser() {
+  const name = $("username").value.trim();
+  const email = $("email").value.trim();
+  const password = $("password").value;
 
   if (!name || !email || password.length < 6) {
-    alert("Name, email এবং কমপক্ষে ৬ অক্ষরের password দাও।");
+    alert("Name, email and 6 character password required.");
     return;
   }
 
-  document.getElementById("displayName").textContent = name;
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("home").classList.remove("hidden");
+  $("displayName").textContent = name;
+  $("login").classList.add("hidden");
+  $("home").classList.remove("hidden");
 }
 
-function startCall(type) {
-  document.getElementById("callBox").classList.remove("hidden");
-  document.getElementById("callTitle").textContent = type;
-  document.getElementById("status").textContent =
-    "Demo mode: real calling service is not connected yet.";
+async function startCall(type) {
+  try {
+    currentMode = type;
+
+    const name = $("username").value.trim();
+    const roomName = prompt(
+      "Room name দাও। একই নাম দিলে একই কলে যোগ হবে:"
+    );
+
+    if (!roomName) return;
+
+    $("callTitle").textContent =
+      type === "group" ? "Group Call" :
+      type === "video" ? "Video Call" : "Audio Call";
+
+    $("callBox").classList.remove("hidden");
+    $("status").textContent = "Connecting...";
+
+    const credentials = await tokenSource.fetch({
+      roomName: roomName
+    });
+
+    room = new Room();
+
+    room.on(RoomEvent.TrackSubscribed, track => {
+      if (track.kind === Track.Kind.Video) {
+        const video = track.attach();
+        video.autoplay = true;
+        video.playsInline = true;
+        video.style.width = "100%";
+        video.style.maxWidth = "300px";
+        $("videos").appendChild(video);
+      }
+    });
+
+    room.on(RoomEvent.ParticipantDisconnected, () => {
+      console.log("Participant left");
+    });
+
+    await room.connect(
+      credentials.serverUrl,
+      credentials.participantToken
+    );
+
+    await room.localParticipant.setMicrophoneEnabled(true);
+
+    if (type !== "audio") {
+      await room.localParticipant.setCameraEnabled(true);
+    }
+
+    $("status").textContent = "Connected: " + roomName;
+
+  } catch (error) {
+    console.error(error);
+    $("status").textContent =
+      "Call failed: " + error.message;
+    alert("Call connection failed. Check internet and permissions.");
+  }
 }
 
-function toggleMute() {
-  alert("Real call service যুক্ত হলে Mute কাজ করবে।");
+async function toggleMute() {
+  if (!room) return;
+
+  const enabled =
+    room.localParticipant.isMicrophoneEnabled;
+
+  await room.localParticipant.setMicrophoneEnabled(!enabled);
 }
 
-function toggleCamera() {
-  alert("Real call service যুক্ত হলে Camera control কাজ করবে।");
+async function toggleCamera() {
+  if (!room) return;
+
+  const enabled =
+    room.localParticipant.isCameraEnabled;
+
+  await room.localParticipant.setCameraEnabled(!enabled);
 }
 
-function endCall() {
-  document.getElementById("callBox").classList.add("hidden");
+async function endCall() {
+  if (room) {
+    await room.disconnect();
+    room = null;
+  }
+
+  $("videos").innerHTML = "";
+  $("callBox").classList.add("hidden");
 }
 
 function logout() {
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("login").classList.remove("hidden");
+  endCall();
+  $("home").classList.add("hidden");
+  $("login").classList.remove("hidden");
 }
+
+window.loginUser = loginUser;
+window.startCall = startCall;
+window.toggleMute = toggleMute;
+window.toggleCamera = toggleCamera;
+window.endCall = endCall;
+window.logout = logout;
