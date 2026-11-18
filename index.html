@@ -2,54 +2,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DHUDDA HUB</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090e1b">
+  <title>DHUDDA HUB</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
 
-<div class="card" id="login">
- <div class="logo">DHUDDA HUB</div>
- <h1>Stay close.<br><span>Talk freely.</span></h1>
- <p>Connect with your people.</p>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">D</div>
+        <div>
+          <strong>DHUDDA HUB</strong>
+          <small>Stay close. Talk freely.</small>
+        </div>
+      </div>
+      <span class="online-label"><i></i> Connected</span>
+    </header>
 
- <input id="username" placeholder="Your name">
- <input id="email" type="email" placeholder="Email address">
- <input id="password" type="password" placeholder="Password">
+    <main>
+      <section id="login" class="login-screen">
+        <div class="login-card">
+          <div class="brand-icon big">D</div>
+          <h1>Welcome to <span>DHUDDA</span></h1>
+          <p>Connect with your people, anywhere.</p>
 
- <button class="full" onclick="loginUser()">Enter DHUDDA HUB</button>
-</div>
+          <label>Your name</label>
+          <input id="username" placeholder="Enter your name" maxlength="30">
 
-<div class="card hidden" id="home">
- <div class="logo">DHUDDA HUB</div>
- <h2>Welcome, <span id="displayName"></span>!</h2>
- <p>Choose your calling option.</p>
+          <label>Room name</label>
+          <input id="roomName" placeholder="Example: friends-room" maxlength="50">
 
- <div class="grid">
-  <button onclick="startCall('Audio Call')">🎙 Audio Call</button>
-  <button onclick="startCall('Video Call')">📹 Video Call</button>
-  <button onclick="startCall('Group Call - 8 People')">👥 Group Call</button>
- </div>
+          <div class="call-options">
+            <button onclick="startCall('audio')" class="option">
+              <span>🎙️</span>
+              <b>Audio Call</b>
+              <small>Voice only</small>
+            </button>
+            <button onclick="startCall('video')" class="option">
+              <span>📹</span>
+              <b>Video Call</b>
+              <small>Face to face</small>
+            </button>
+            <button onclick="startCall('group')" class="option">
+              <span>👥</span>
+              <b>Group Call</b>
+              <small>Up to 8 people*</small>
+            </button>
+          </div>
+          <p class="hint">Everyone must join using the same room name.</p>
+          <p id="loginError" class="error"></p>
+        </div>
+      </section>
 
- <div id="callBox" class="hidden">
-  <h2 id="callTitle"></h2>
-  <div class="call">Your call room</div>
-  <div id="videos"></div>
-  <button class="secondary full" onclick="toggleMute()">🎙 Mute / Unmute</button>
-  <button class="secondary full" onclick="toggleCamera()">📷 Camera On / Off</button>
-  <button class="full" style="background:#e65e70" onclick="endCall()">☎ End Call</button>
-  <p id="status">Demo mode: real call not connected.</p>
-  <button class="full" onclick="enableSpeaker()">
-  🔊 Enable Speaker
-  </button>
- </div>
+      <section id="callScreen" class="call-screen hidden">
+        <div class="call-heading">
+          <div>
+            <h2 id="activeRoom">Call Room</h2>
+            <p id="callStatus">Connecting...</p>
+          </div>
+          <div class="participant-count">
+            <span>👥</span>
+            <b id="participantCount">1</b>
+          </div>
+        </div>
 
- <button class="secondary full" onclick="logout()">Log out</button>
-</div>
+        <div id="videoGrid" class="video-grid">
+          <div id="localTile" class="video-tile local-tile">
+            <video id="localVideo" autoplay muted playsinline></video>
+            <span class="tile-name">You</span>
+            <span class="local-badge">YOU</span>
+          </div>
+        </div>
 
-</div>
-<script type="module" src="app.js"></script>
+        <div class="call-controls">
+          <button id="micButton" class="control" onclick="toggleMute()">
+            <span>🎙️</span><small>Mute</small>
+          </button>
+          <button id="cameraButton" class="control" onclick="toggleCamera()">
+            <span>📷</span><small>Camera</small>
+          </button>
+          <button class="control" onclick="switchCamera()">
+            <span>🔄</span><small>Flip</small>
+          </button>
+          <button class="control" onclick="enableSpeaker()">
+            <span>🔊</span><small>Speaker</small>
+          </button>
+          <button class="control end-call" onclick="endCall()">
+            <span>📞</span><small>End</small>
+          </button>
+        </div>
+        <p class="footer-note">*Group size depends on your LiveKit plan and room settings.</p>
+      </section>
+    </main>
+
+    <footer>© DHUDDA HUB · Made to stay connected</footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
