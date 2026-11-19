@@ -388,19 +388,39 @@ export default {
         return json({ ok: true, id }, 200, headers);
       }
 
-      // GET PENDING MESSAGES
+            // GET 24-HOUR CHAT HISTORY
       if (url.pathname === "/api/messages" && request.method === "GET") {
         const friendId = url.searchParams.get("friendId") || "";
+        const cutoff = Date.now() - 86400000;
+
+        // Delete messages older than 24 hours
+        await run(env,
+          "DELETE FROM offline_messages WHERE created_at <= ?",
+          cutoff
+        );
 
         const friendship = await env.DB.prepare(
           "SELECT id FROM friendships WHERE status='accepted' AND ((requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?))"
         ).bind(me.id, friendId, friendId, me.id).first();
 
-        if (!friendship) return json({ messages: [] }, 200, headers);
+        if (!friendship) {
+          return json({ messages: [] }, 200, headers);
+        }
 
         const result = await env.DB.prepare(
-          "SELECT id,sender_id,ciphertext,created_at FROM offline_messages WHERE recipient_id=? AND friendship_id=? AND delivered_at IS NULL ORDER BY created_at ASC LIMIT 100"
-        ).bind(me.id, friendship.id).all();
+          `SELECT id,sender_id,recipient_id,ciphertext,created_at
+           FROM offline_messages
+           WHERE friendship_id=?
+           AND created_at>?
+           AND ((sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?))
+           ORDER BY created_at ASC
+           LIMIT 200`
+        ).bind(
+          friendship.id,
+          cutoff,
+          me.id, friendId,
+          friendId, me.id
+        ).all();
 
         return json({ messages: result.results }, 200, headers);
       }
