@@ -361,6 +361,67 @@ export default {
       if (!me) {
         return json({ error: "Login required" }, 401, headers);
       }
+      
+      // SAVE OFFLINE MESSAGE
+      if (url.pathname === "/api/messages/send" && request.method === "POST") {
+        const body = await readBody(request);
+        const friendId = String(body?.friendId || "");
+        const ciphertext = String(body?.ciphertext || "");
+
+        if (!friendId || !ciphertext || ciphertext.length > 14000) {
+          return json({ error: "Invalid message" }, 400, headers);
+        }
+
+        const friendship = await env.DB.prepare(
+          "SELECT id FROM friendships WHERE status='accepted' AND ((requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?))"
+        ).bind(me.id, friendId, friendId, me.id).first();
+
+        if (!friendship) return json({ error: "Friends only" }, 403, headers);
+
+        const id = crypto.randomUUID();
+
+        await run(env,
+          "INSERT INTO offline_messages(id,sender_id,recipient_id,friendship_id,ciphertext,created_at) VALUES(?,?,?,?,?,?)",
+          id, me.id, friendId, friendship.id, ciphertext, Date.now()
+        );
+
+        return json({ ok: true, id }, 200, headers);
+      }
+
+      // GET PENDING MESSAGES
+      if (url.pathname === "/api/messages" && request.method === "GET") {
+        const friendId = url.searchParams.get("friendId") || "";
+
+        const friendship = await env.DB.prepare(
+          "SELECT id FROM friendships WHERE status='accepted' AND ((requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?))"
+        ).bind(me.id, friendId, friendId, me.id).first();
+
+        if (!friendship) return json({ messages: [] }, 200, headers);
+
+        const result = await env.DB.prepare(
+          "SELECT id,sender_id,ciphertext,created_at FROM offline_messages WHERE recipient_id=? AND friendship_id=? AND delivered_at IS NULL ORDER BY created_at ASC LIMIT 100"
+        ).bind(me.id, friendship.id).all();
+
+        return json({ messages: result.results }, 200, headers);
+      }
+
+      // ACKNOWLEDGE DELIVERED MESSAGES
+      if (url.pathname === "/api/messages/ack" && request.method === "POST") {
+        const body = await readBody(request);
+        const ids = Array.isArray(body?.ids)
+          ? body.ids.filter(id => typeof id === "string").slice(0, 100)
+          : [];
+
+        for (const id of ids) {
+          await run(env,
+            "UPDATE offline_messages SET delivered_at=? WHERE id=? AND recipient_id=?",
+            Date.now(), id, me.id
+          );
+        }
+
+        return json({ ok: true }, 200, headers);
+      }
+      
 
       if (url.pathname === "/api/me" && request.method === "GET") {
         return json({ user: me }, 200, headers);
@@ -524,8 +585,9 @@ export class ChatRoom {
       if (peer !== socket) {
         try {
           peer.send(JSON.stringify({
-            type: "ciphertext",
-            data: packet.data
+          type: "ciphertext",
+          id: packet.id || null,
+          data: packet.data
           }));
         } catch {}
       }
