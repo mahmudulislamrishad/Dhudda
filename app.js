@@ -535,14 +535,16 @@ async function fetchOfflineMessages(friend) {
     const receivedIds = [];
 
     for (const item of result.messages || []) {
-      if (displayedMessageIds.has(item.id)) {
-        receivedIds.push(item.id);
-        continue;
-              }
+      if (displayedMessageIds.has(item.id)) continue;
+
       const message = await decryptText(item.ciphertext);
-      appendMessage(friend.display_name, message);
+      const isMine = item.sender_id === account.id;
+
+      appendMessage(isMine ? "You" : friend.display_name, message);
       displayedMessageIds.add(item.id);
-      receivedIds.push(item.id);
+
+      // Only acknowledge messages received from the other person.
+      if (!isMine) receivedIds.push(item.id);
     }
 
     if (receivedIds.length) {
@@ -552,7 +554,7 @@ async function fetchOfflineMessages(friend) {
       });
     }
   } catch (error) {
-    console.error("Offline message fetch failed:", error);
+    console.error("Chat history fetch failed:", error);
   }
 }
 
@@ -581,6 +583,9 @@ function setupChatForm() {
           ciphertext
         })
       });
+
+      // Keep the saved message ID so the next history refresh won't duplicate it.
+      if (saved.id) displayedMessageIds.add(saved.id);
 
       // Live delivery is an optimization; the database queue is the reliable path.
       if (socket && socket.readyState === WebSocket.OPEN) {
@@ -1071,4 +1076,3 @@ window.endCall = endCall;
 window.minimizeCall = minimizeCall;
 
         
-
