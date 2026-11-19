@@ -320,7 +320,42 @@ export default {
 
         return json({ ok: result.meta.changes === 1 }, 200, headers);
       }
+      // WebSocket chat - ticket authentication
+      if (url.pathname === "/api/chat" && request.method === "GET") {
+        if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
+          return json({ error: "WebSocket required" }, 426, headers);
+        }
 
+        const ticket = url.searchParams.get("ticket") || "";
+        if (!ticket) {
+          return json({ error: "Ticket required" }, 401, headers);
+        }
+
+        const ticketHash = await sha256(ticket);
+
+        const record = await env.DB.prepare(
+          "SELECT user_id, friendship_id FROM chat_tickets WHERE token_hash=? AND expires_at>?"
+        ).bind(ticketHash, Date.now()).first();
+
+        if (!record) {
+          return json({ error: "Invalid or expired chat ticket" }, 401, headers);
+        }
+
+        await run(env, "DELETE FROM chat_tickets WHERE token_hash=?", ticketHash);
+
+        const forwardUrl = new URL(request.url);
+        forwardUrl.protocol = "https:";
+        forwardUrl.hostname = "chat.internal";
+        forwardUrl.pathname = "/connect";
+        forwardUrl.search = "";
+
+        const forwardRequest = new Request(forwardUrl.toString(), request);
+        forwardRequest.headers.set("X-User-Id", record.user_id);
+
+        return env.CHAT_ROOM
+          .get(env.CHAT_ROOM.idFromName(record.friendship_id))
+          .fetch(forwardRequest);
+      }
       const me = await getAuth(request, env);
 
       if (!me) {
@@ -428,42 +463,7 @@ export default {
       }
 
       
-      // WebSocket chat - ticket authentication
-      if (url.pathname === "/api/chat" && request.method === "GET") {
-        if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
-          return json({ error: "WebSocket required" }, 426, headers);
-        }
-
-        const ticket = url.searchParams.get("ticket") || "";
-        if (!ticket) {
-          return json({ error: "Ticket required" }, 401, headers);
-        }
-
-        const ticketHash = await sha256(ticket);
-
-        const record = await env.DB.prepare(
-          "SELECT user_id, friendship_id FROM chat_tickets WHERE token_hash=? AND expires_at>?"
-        ).bind(ticketHash, Date.now()).first();
-
-        if (!record) {
-          return json({ error: "Invalid or expired chat ticket" }, 401, headers);
-        }
-
-        await run(env, "DELETE FROM chat_tickets WHERE token_hash=?", ticketHash);
-
-        const forwardUrl = new URL(request.url);
-        forwardUrl.protocol = "https:";
-        forwardUrl.hostname = "chat.internal";
-        forwardUrl.pathname = "/connect";
-        forwardUrl.search = "";
-
-        const forwardRequest = new Request(forwardUrl.toString(), request);
-        forwardRequest.headers.set("X-User-Id", record.user_id);
-
-        return env.CHAT_ROOM
-          .get(env.CHAT_ROOM.idFromName(record.friendship_id))
-          .fetch(forwardRequest);
-      }
+      
 
 
       return json({ error: "Not found" }, 404, headers);
