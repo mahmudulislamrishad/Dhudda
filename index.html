@@ -8,10 +8,9 @@
   <title>DHUDDA HUB</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <meta name="description" content="DHUDDA HUB audio and video calling">
+  <meta name="description" content="DHUDDA HUB audio, video calling and private chat">
 </head>
 <body>
-
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
@@ -26,54 +25,126 @@
 
     <main>
       <section id="login" class="login-screen">
+
+        <!-- REGISTER -->
         <div id="activatePanel" class="login-card">
           <div class="brand-icon big">D</div>
-          <h1>Welcome to <span>DHUDDA</span></h1>
-          <p>Activate your device with your one-time key.</p>
+          <h1>Create your <span>DHUDDA</span> account</h1>
+          <p>Activation key is required only once.</p>
+
           <label>Activation Key</label>
-          <input id="activationKey" placeholder="DH-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off">
-          <label>Username (3–20 characters)</label>
-          <input id="newUsername" placeholder="your_username" maxlength="20">
-          <label>Profile Name</label>
-          <input id="displayName" placeholder="Your name" maxlength="40">
-          <button class="primary-action" onclick="activateAccount()">Activate Device</button>
+          <input id="activationKey" placeholder="Enter activation key" autocomplete="off">
+
+          <label>Username</label>
+          <input id="newUsername" placeholder="Choose username" maxlength="20" autocomplete="username">
+
+          <label>Display Name</label>
+          <input id="displayName" placeholder="Your display name" maxlength="40">
+
+          <label>Password</label>
+          <input id="registerPassword" type="password" placeholder="Create password" autocomplete="new-password">
+
+          <button class="primary-action" onclick="activateAccount()">Create Account</button>
           <p id="activateError" class="error"></p>
+
+          <p>Already have an account?
+            <a href="#" onclick="showLoginForm(); return false;">Login</a>
+          </p>
         </div>
 
+        <!-- LOGIN -->
+        <div id="accountLoginPanel" class="login-card hidden">
+          <div class="brand-icon big">D</div>
+          <h1>Welcome <span>Back</span></h1>
+          <p>Login with your username and password.</p>
+
+          <label>Username</label>
+          <input id="loginUsername" placeholder="Your username" autocomplete="username">
+
+          <label>Password</label>
+          <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password">
+
+          <button class="primary-action" onclick="loginAccount()">Login</button>
+          <p id="loginFormError" class="error"></p>
+
+          <p>New to DHUDDA HUB?
+            <a href="#" onclick="showRegisterForm(); return false;">Create account</a>
+          </p>
+        </div>
+
+        <!-- MAIN HUB -->
         <div id="hubPanel" class="hub-panel hidden">
           <div class="profile-bar">
-            <div><strong id="myDisplay"></strong> <span id="myVerified" class="verified hidden">✓ DHUDDA VERIFIED</span><small id="myUsername"></small></div>
+            <div>
+              <strong id="myDisplay"></strong>
+              <span id="myVerified" class="verified hidden">✓ DHUDDA VERIFIED</span>
+              <small id="myUsername"></small>
+            </div>
             <button class="secondary-action" onclick="logoutAccount()">Log out</button>
           </div>
+
           <div class="hub-columns">
             <aside class="hub-sidebar">
               <h3>Find People</h3>
-              <div class="search-line"><input id="userSearch" placeholder="Search username"><button class="secondary-action" onclick="searchUsers()">Search</button></div>
+              <div class="search-line">
+                <input id="userSearch" placeholder="Search username">
+                <button class="secondary-action" onclick="searchUsers()">Search</button>
+              </div>
               <div id="searchResults" class="people-list"></div>
-              <h3>Friend Requests</h3><div id="friendRequests" class="people-list"></div>
-              <h3>Friends</h3><div id="friendList" class="people-list"></div>
+
+              <h3>Friend Requests</h3>
+              <div id="friendRequests" class="people-list"></div>
+
+              <h3>Friends</h3>
+              <div id="friendList" class="people-list"></div>
             </aside>
+
             <section class="private-chat">
-              <div class="chat-header"><strong id="chatTitle">Private Chat</strong><small id="chatState">Select a friend to start</small></div>
-              <div id="chatMessages" class="chat-messages"><p class="chat-empty">Your messages are end-to-end encrypted and are not saved as history.</p></div>
-              <form id="chatForm" class="chat-compose"><input id="chatInput" placeholder="Write a message…" autocomplete="off"><button class="primary-action" type="submit">Send</button></form>
+              <div class="chat-header">
+                <strong id="chatTitle">Private Chat</strong>
+                <small id="chatState">Select a friend to start</small>
+              </div>
+
+              <div id="chatMessages" class="chat-messages">
+                <p class="chat-empty">Your private conversations appear here.</p>
+              </div>
+
+              <form id="chatForm" class="chat-compose">
+                <input id="chatInput" placeholder="Write a message…" autocomplete="off">
+                <button class="primary-action" type="submit">Send</button>
+              </form>
             </section>
           </div>
+
+          <!-- CALLING -->
           <div class="call-entry">
             <h3>Audio / Video Calling</h3>
-            <label>Your name</label><input id="username" placeholder="Your name" maxlength="30">
-            <label>Room name</label><input id="roomName" placeholder="Example: friends-room" maxlength="50">
+
+            <label>Your name</label>
+            <input id="username" placeholder="Your name" maxlength="30">
+
+            <label>Room name</label>
+            <input id="roomName" placeholder="Example: friends-room" maxlength="50">
+
             <div class="call-options">
-              <button onclick="startCall('audio')" class="option"><span>🎙️</span><b>Audio Call</b><small>Voice only</small></button>
-              <button onclick="startCall('video')" class="option"><span>📹</span><b>Video Call</b><small>Face to face</small></button>
-              <button onclick="startCall('group')" class="option"><span>👥</span><b>Group Call</b><small>Up to 8 people*</small></button>
+              <button onclick="startCall('audio')" class="option">
+                <span>🎙️</span><b>Audio Call</b><small>Voice only</small>
+              </button>
+              <button onclick="startCall('video')" class="option">
+                <span>📹</span><b>Video Call</b><small>Face to face</small>
+              </button>
+              <button onclick="startCall('group')" class="option">
+                <span>👥</span><b>Group Call</b><small>Up to 8 people*</small>
+              </button>
             </div>
+
             <p class="hint">Everyone must join using the same room name.</p>
             <p id="loginError" class="error"></p>
           </div>
         </div>
       </section>
 
+      <!-- CALL SCREEN -->
       <section id="callScreen" class="call-screen hidden">
         <div class="call-heading">
           <div>
@@ -96,28 +167,31 @@
 
         <div class="call-controls">
           <button class="control" onclick="minimizeCall()"><span>▣</span><small>Minimize</small></button>
-          <button id="micButton" class="control" onclick="toggleMute()">
-            <span>🎙️</span><small>Mute</small>
-          </button>
-          <button id="cameraButton" class="control" onclick="toggleCamera()">
-            <span>📷</span><small>Camera</small>
-          </button>
-          <button class="control" onclick="switchCamera()">
-            <span>🔄</span><small>Flip</small>
-          </button>
-          <button class="control" onclick="enableSpeaker()">
-            <span>🔊</span><small>Speaker</small>
-          </button>
-          <button class="control end-call" onclick="endCall()">
-            <span>📞</span><small>End</small>
-          </button>
+          <button id="micButton" class="control" onclick="toggleMute()"><span>🎙️</span><small>Mute</small></button>
+          <button id="cameraButton" class="control" onclick="toggleCamera()"><span>📷</span><small>Camera</small></button>
+          <button class="control" onclick="switchCamera()"><span>🔄</span><small>Flip</small></button>
+          <button class="control" onclick="enableSpeaker()"><span>🔊</span><small>Speaker</small></button>
+          <button class="control end-call" onclick="endCall()"><span>📞</span><small>End</small></button>
         </div>
+
         <p class="footer-note">*Group size depends on your LiveKit plan and room settings.</p>
       </section>
     </main>
 
     <footer>© DHUDDA HUB · Made to stay connected</footer>
   </div>
+
+  <script>
+    function showLoginForm() {
+      document.getElementById('activatePanel').classList.add('hidden');
+      document.getElementById('accountLoginPanel').classList.remove('hidden');
+    }
+
+    function showRegisterForm() {
+      document.getElementById('accountLoginPanel').classList.add('hidden');
+      document.getElementById('activatePanel').classList.remove('hidden');
+    }
+  </script>
 
   <script type="module" src="app.js"></script>
 </body>
