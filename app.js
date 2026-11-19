@@ -19,6 +19,8 @@ let account = null;
 let selectedFriend = null;
 let socket = null;
 let conversationKey = null;
+let messagePollTimer = null;
+const displayedMessageIds = new Set();
 
 // ==========================================
 // API
@@ -299,6 +301,8 @@ async function showHub() {
 
 async function logoutAccount() {
   if (socket) socket.close();
+  if (messagePollTimer) clearInterval(messagePollTimer);
+  messagePollTimer = null;
 
   socket = null;
   account = null;
@@ -442,6 +446,9 @@ async function refreshPeople() {
 async function openChat(friend) {
   try {
     if (socket) socket.close();
+    if (messagePollTimer) clearInterval(messagePollTimer);
+    messagePollTimer = null;
+    displayedMessageIds.clear();
 
     selectedFriend = friend;
     conversationKey = await deriveConversationKey(friend.public_key);
@@ -474,8 +481,7 @@ async function openChat(friend) {
         const packet = JSON.parse(event.data);
 
         if (packet.type === "ciphertext") {
-          const message = await decryptText(packet.data);
-          appendMessage(friend.display_name, message);
+          await displayIncomingMessage(packet.data, packet.id || null, friend);
         }
 
       } catch (e) {
@@ -488,8 +494,14 @@ async function openChat(friend) {
     };
 
     socket.onclose = () => {
-      document.getElementById("chatState").textContent = "Disconnected";
+      document.getElementById("chatState").textContent = "Live connection off; offline delivery active";
     };
+
+    // Fetch queued messages immediately and keep checking while this chat is open.
+    await fetchOfflineMessages(friend);
+    messagePollTimer = setInterval(() => {
+      if (selectedFriend?.id === friend.id) fetchOfflineMessages(friend);
+    }, 4000);
 
   } catch (e) {
     alert(e.message);
@@ -500,6 +512,50 @@ async function openChat(friend) {
 // SEND CHAT MESSAGE
 // ==========================================
 
+async function displayIncomingMessage(ciphertext, messageId, friend) {
+  if (messageId && displayedMessageIds.has(messageId)) return;
+
+  const message = await decryptText(ciphertext);
+  appendMessage(friend.display_name, message);
+
+  if (messageId) {
+    displayedMessageIds.add(messageId);
+    await api("/api/messages/ack", {
+      method: "POST",
+      body: JSON.stringify({ ids: [messageId] })
+    }).catch(error => console.error("Message acknowledgement failed:", error));
+  }
+}
+
+async function fetchOfflineMessages(friend) {
+  if (!account || !conversationKey || selectedFriend?.id !== friend.id) return;
+
+  try {
+    const result = await api("/api/messages?friendId=" + encodeURIComponent(friend.id));
+    const receivedIds = [];
+
+    for (const item of result.messages || []) {
+      if (displayedMessageIds.has(item.id)) {
+        receivedIds.push(item.id);
+        continue;
+              }
+      const message = await decryptText(item.ciphertext);
+      appendMessage(friend.display_name, message);
+      displayedMessageIds.add(item.id);
+      receivedIds.push(item.id);
+    }
+
+    if (receivedIds.length) {
+      await api("/api/messages/ack", {
+        method: "POST",
+        body: JSON.stringify({ ids: receivedIds })
+      });
+    }
+  } catch (error) {
+    console.error("Offline message fetch failed:", error);
+  }
+}
+
 function setupChatForm() {
   const form = document.getElementById("chatForm");
   if (!form) return;
@@ -509,32 +565,36 @@ function setupChatForm() {
 
     const input = document.getElementById("chatInput");
     const value = input.value.trim();
-
     if (!value) return;
 
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      alert("Chat connection নেই। আবার Chat open করো।");
-      return;
-    }
-
-    if (!conversationKey) {
-      alert("Encryption key পাওয়া যায়নি।");
+    if (!selectedFriend || !conversationKey) {
+      alert("আগে Friend-এর Chat open করো।");
       return;
     }
 
     try {
-      const data = await encryptText(value);
+      const ciphertext = await encryptText(value);
+      const saved = await api("/api/messages/send", {
+        method: "POST",
+        body: JSON.stringify({
+          friendId: selectedFriend.id,
+          ciphertext
+        })
+      });
 
-      socket.send(JSON.stringify({
-        type: "ciphertext",
-        data
-      }));
+      // Live delivery is an optimization; the database queue is the reliable path.
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+          type: "ciphertext",
+          id: saved.id,
+          data: ciphertext
+        }));
+      }
 
       appendMessage("You", value);
       input.value = "";
-
     } catch (e) {
-      alert("Message error: " + e.message);
+      alert("Message পাঠানো যায়নি: " + e.message);
     }
   });
 }
@@ -1011,3 +1071,4 @@ window.endCall = endCall;
 window.minimizeCall = minimizeCall;
 
         
+
